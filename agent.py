@@ -1,7 +1,7 @@
 import logging
 import json
 from pathlib import Path
-from typing import Any, AsyncGenerator
+from typing import Any, AsyncGenerator, Dict
 
 from google.adk.agents import LlmAgent, LoopAgent, BaseAgent
 from google.adk.agents.invocation_context import InvocationContext
@@ -20,6 +20,11 @@ class SimpleImagenAgent(BaseAgent):
     A simplified Imagen agent that generates images from prompts and saves them locally.
     """
     
+    # Class attributes (not Pydantic fields)
+    client: Any = None
+    config: dict = None
+    
+    # Pydantic fields
     name: str = Field(default="SimpleImageGenerator")
     description: str = Field(default="Generates images from prompts using Imagen")
     input_key: str = Field(default="image_prompts")
@@ -29,6 +34,7 @@ class SimpleImagenAgent(BaseAgent):
     
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
+        # Initialize client and config after super().__init__
         self.client = get_client()
         self.config = {
             "number_of_images": 1,
