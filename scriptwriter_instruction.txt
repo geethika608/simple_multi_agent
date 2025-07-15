@@ -17,4 +17,4 @@ Guidelines:
 
 Output only the script text. Do not include any formatting, scene numbers, or additional text.
 
-User Input: {user_input} 
+User Input: 'state['user_input']' 

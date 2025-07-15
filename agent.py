@@ -139,12 +139,36 @@ image_generator_agent = SimpleImagenAgent(
     output_key="generated_images"
 )
 
+# Sub-agent 4: Formatter (Optional - combines script and image info)
+formatter_agent = LlmAgent(
+    name="ContentFormatter",
+    model="gemini-2.0-flash-001",
+    instruction="""Create a final summary combining the script from 'state['generated_script']' and the generated images from 'state['generated_images']'. 
+    
+    Format the output as:
+    
+    # Generated Content Summary
+    
+    ## Script
+    [Include the full script here]
+    
+    ## Generated Images
+    [List the image files that were created]
+    
+    ## Usage Instructions
+    - The script can be used for voiceover or text content
+    - Images are saved locally and can be used for visual content
+    - All files are organized in the output directory""",
+    description="Formats the final content summary",
+    output_key="final_content_summary"
+)
+
 # Loop Agent Workflow
 content_creator_agent = LoopAgent(
     name="content_creator_agent",
     max_iterations=3,  # Maximum 3 iterations to prevent infinite loops
-    sub_agents=[scriptwriter_agent, image_prompt_agent, image_generator_agent],
-    description="Creates scripts and generates corresponding images"
+    sub_agents=[scriptwriter_agent, image_prompt_agent, image_generator_agent, formatter_agent],
+    description="Creates scripts, generates corresponding images, and provides a final summary"
 )
 
 # Root agent for ADK web interface

@@ -68,6 +68,7 @@ def test_agent():
                     print(f"   - Script: {'✅' if 'generated_script' in state else '❌'}")
                     print(f"   - Image Prompts: {'✅' if 'image_prompts' in state else '❌'}")
                     print(f"   - Generated Images: {'✅' if 'generated_images' in state else '❌'}")
+                    print(f"   - Final Summary: {'✅' if 'final_content_summary' in state else '❌'}")
                     
                     # Show script if available
                     if 'generated_script' in state:
@@ -81,6 +82,12 @@ def test_agent():
                         print("-" * 20)
                         for i, img_path in enumerate(state['generated_images'], 1):
                             print(f"   {i}. {img_path}")
+                    
+                    # Show final summary if available
+                    if 'final_content_summary' in state:
+                        print(f"\n📋 Final Content Summary:")
+                        print("-" * 20)
+                        print(state['final_content_summary'])
                     
                     return True
         

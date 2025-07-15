@@ -26,4 +26,4 @@ Example:
   ]
 }
 
-Script to convert: {script} 
+Script to convert: 'state['generated_script']' 
