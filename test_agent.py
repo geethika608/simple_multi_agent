@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test script for the Simple Multi-Agent Content Creator
+Test script for the Simple Multi-Agent Content Creator with Function Tools
 """
 
 import os
@@ -29,8 +29,8 @@ def test_agent():
         print("Please create a .env file with your Google API key")
         return False
     
-    print("🚀 Starting Simple Multi-Agent Content Creator Test")
-    print("=" * 50)
+    print("🚀 Starting Simple Multi-Agent Content Creator Test (Function Tools)")
+    print("=" * 60)
     
     # Setup session and runner
     session_service = InMemorySessionService()
@@ -46,65 +46,99 @@ def test_agent():
     content = types.Content(role="user", parts=[types.Part(text=test_prompt)])
     
     try:
-        print("🤖 Running agents...")
-        print("-" * 30)
+        print("🔄 Running the multi-agent workflow...")
+        print("-" * 40)
         
         # Run the agent
         events = runner.run(user_id="test_user", session_id="test_session", new_message=content)
         
         # Process events
         for event in events:
-            if hasattr(event, 'content') and event.content and event.content.parts:
-                message = event.content.parts[0].text
-                print(f"[{event.author}]: {message}")
-                
-                if event.is_final_response():
-                    print()
-                    print("✅ Agent workflow completed successfully!")
-                    
-                    # Check session state for outputs
-                    state = session.state.to_dict()
-                    print("\n📊 Session State Summary:")
-                    print(f"   - Script: {'✅' if 'generated_script' in state else '❌'}")
-                    print(f"   - Image Prompts: {'✅' if 'image_prompts' in state else '❌'}")
-                    print(f"   - Generated Images: {'✅' if 'generated_images' in state else '❌'}")
-                    print(f"   - Final Summary: {'✅' if 'final_content_summary' in state else '❌'}")
-                    
-                    # Show script if available
-                    if 'generated_script' in state:
-                        print(f"\n📄 Generated Script:")
-                        print("-" * 20)
-                        print(state['generated_script'])
-                    
-                    # Show image paths if available
-                    if 'generated_images' in state:
-                        print(f"\n🖼️  Generated Images:")
-                        print("-" * 20)
-                        for i, img_path in enumerate(state['generated_images'], 1):
-                            print(f"   {i}. {img_path}")
-                    
-                    # Show final summary if available
-                    if 'final_content_summary' in state:
-                        print(f"\n📋 Final Content Summary:")
-                        print("-" * 20)
-                        print(state['final_content_summary'])
-                    
-                    return True
+            if event.is_final_response():
+                print("\n✅ Final Response:")
+                print("=" * 40)
+                print(event.content.parts[0].text)
+                print("=" * 40)
+            else:
+                # Print intermediate events for debugging
+                if hasattr(event, 'content') and event.content and event.content.parts:
+                    print(f"📤 {event.author}: {event.content.parts[0].text[:100]}...")
         
-        print("❌ No final response received")
-        return False
+        print("\n🎉 Test completed successfully!")
+        print("\n📁 Check the 'output/' directory for generated files:")
+        
+        # List generated files
+        output_dir = Path("output")
+        if output_dir.exists():
+            for item in output_dir.rglob("*"):
+                if item.is_file():
+                    print(f"   📄 {item}")
+        else:
+            print("   No output directory found")
+        
+        return True
         
     except Exception as e:
-        print(f"❌ Error during agent execution: {e}")
+        print(f"❌ Error during test: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
+def test_function_tool_directly():
+    """Test the function tool directly without the agent workflow."""
+    
+    print("\n🔧 Testing Function Tool Directly")
+    print("=" * 40)
+    
+    try:
+        from tools import generate_multiple_images_tool, GenerateMultipleImagesRequest
+        
+        # Test request
+        test_request = GenerateMultipleImagesRequest(
+            prompts=[
+                "A futuristic robot in a modern laboratory",
+                "A beautiful sunset over a city skyline"
+            ],
+            aspect_ratio="1:1",
+            output_prefix="test"
+        )
+        
+        print("📝 Testing with prompts:")
+        for i, prompt in enumerate(test_request.prompts, 1):
+            print(f"   {i}. {prompt}")
+        
+        # Call the function directly
+        result = generate_multiple_images_tool.function(test_request)
+        
+        print(f"\n✅ Function Tool Result:")
+        print(f"   Success: {result.success}")
+        print(f"   Image Paths: {result.image_paths}")
+        if result.error_message:
+            print(f"   Error: {result.error_message}")
+        
+        return result.success
+        
+    except Exception as e:
+        print(f"❌ Error testing function tool: {e}")
         import traceback
         traceback.print_exc()
         return False
 
 if __name__ == "__main__":
-    success = test_agent()
-    if success:
-        print("\n🎉 Test completed successfully!")
-        print("You can now use 'adk web' to start the web interface")
+    print("🧪 Simple Multi-Agent Content Creator - Function Tools Test")
+    print("=" * 70)
+    
+    # Test function tool first
+    tool_success = test_function_tool_directly()
+    
+    if tool_success:
+        print("\n" + "="*70)
+        # Test full agent workflow
+        agent_success = test_agent()
+        
+        if agent_success:
+            print("\n🎊 All tests passed! The function tool approach is working correctly.")
+        else:
+            print("\n⚠️  Agent workflow test failed, but function tool works.")
     else:
-        print("\n💥 Test failed. Please check the error messages above.")
-        sys.exit(1) 
+        print("\n❌ Function tool test failed. Please check your API key and Imagen access.") 

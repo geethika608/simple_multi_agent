@@ -1,13 +1,14 @@
 # Simple Multi-Agent Content Creator
 
-A streamlined multi-agent system using Google ADK that creates scripts and generates corresponding images based on user input.
+A streamlined multi-agent system using Google ADK that creates scripts and generates corresponding images based on user input. This project demonstrates the use of **Function Tools** for image generation, providing a cleaner and more maintainable approach.
 
 ## Features
 
 - **Script Writer Agent**: Creates engaging, concise scripts for short-form content
 - **Image Prompt Generator**: Converts scripts into detailed image prompts
-- **Image Generator**: Uses Imagen 3.0 to generate images from prompts
+- **Image Generator**: Uses Imagen 3.0 via Function Tools to generate images from prompts
 - **Loop Agent**: Orchestrates the workflow sequentially
+- **Function Tools**: Clean, reusable tools for image generation
 - **Local Storage**: Saves all outputs locally in organized folders
 
 ## Project Structure
@@ -16,6 +17,7 @@ A streamlined multi-agent system using Google ADK that creates scripts and gener
 simple_multi_agent/
 ├── __init__.py                    # Exports root_agent
 ├── agent.py                       # Main agent definitions
+├── tools.py                       # Function tools for image generation
 ├── util.py                        # Utility functions
 ├── requirements.txt               # Dependencies
 ├── scriptwriter_instruction.txt   # Script writer instructions
@@ -121,9 +123,18 @@ output/
 - **Output**: JSON with image_prompts array
 
 ### ImageGenerator Agent
-- **Model**: Imagen 3.0
-- **Purpose**: Generates images from prompts
+- **Model**: Gemini 2.0 Flash + Function Tools
+- **Purpose**: Generates images from prompts using Imagen 3.0
+- **Tools**: `generate_multiple_images_tool`
 - **Output**: Image files saved locally, paths in session state
+
+## Function Tools
+
+### generate_multiple_images_tool
+- **Purpose**: Generate multiple images from a list of prompts
+- **Input**: List of text prompts, aspect ratio, output prefix
+- **Output**: Success status and list of generated image paths
+- **Features**: Error handling, local file saving, configurable parameters
 
 ## Troubleshooting
 
