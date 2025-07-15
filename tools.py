@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 from typing import List, Dict, Any
 
-from google.adk.tools import FunctionTool
+from google.adk.tools import FunctionTool, ToolContext
 from pydantic import BaseModel, Field
 
 from .util import get_client, save_image_from_bytes
@@ -25,12 +25,13 @@ class GenerateImageResponse(BaseModel):
     error_message: str = Field(default="", description="Error message if generation failed")
 
 
-def generate_image(request: GenerateImageRequest) -> GenerateImageResponse:
+def generate_image(request: GenerateImageRequest, tool_context: ToolContext) -> GenerateImageResponse:
     """
     Generate an image using Imagen 3.0 based on a text prompt.
     
     Args:
         request: GenerateImageRequest containing prompt and configuration
+        tool_context: ADK ToolContext for session state access
         
     Returns:
         GenerateImageResponse with success status and image path
@@ -74,6 +75,11 @@ def generate_image(request: GenerateImageRequest) -> GenerateImageResponse:
         
         logger.info(f"Image successfully generated and saved to '{image_path}'")
         
+        # Store the image path in session state
+        if tool_context:
+            tool_context.session_state["last_generated_image"] = str(image_path)
+            logger.info(f"Stored image path in session state: {str(image_path)}")
+        
         return GenerateImageResponse(
             success=True,
             image_path=str(image_path),
@@ -104,12 +110,13 @@ class GenerateMultipleImagesResponse(BaseModel):
     error_message: str = Field(default="", description="Error message if generation failed")
 
 
-def generate_multiple_images(request: GenerateMultipleImagesRequest) -> GenerateMultipleImagesResponse:
+def generate_multiple_images(request: GenerateMultipleImagesRequest, tool_context: ToolContext) -> GenerateMultipleImagesResponse:
     """
     Generate multiple images using Imagen 3.0 based on a list of text prompts.
     
     Args:
         request: GenerateMultipleImagesRequest containing prompts and configuration
+        tool_context: ADK ToolContext for session state access
         
     Returns:
         GenerateMultipleImagesResponse with success status and image paths
@@ -171,6 +178,11 @@ def generate_multiple_images(request: GenerateMultipleImagesRequest) -> Generate
         
         logger.info(f"Successfully generated {len(image_paths)} images")
         
+        # Store the image paths in session state
+        if tool_context:
+            tool_context.session_state["generated_images"] = image_paths
+            logger.info(f"Stored {len(image_paths)} image paths in session state")
+        
         return GenerateMultipleImagesResponse(
             success=True,
             image_paths=image_paths,
@@ -187,18 +199,61 @@ def generate_multiple_images(request: GenerateMultipleImagesRequest) -> Generate
         )
 
 
+def get_session_info(tool_context: ToolContext) -> str:
+    """
+    Get information about the current session state.
+    
+    Args:
+        tool_context: ADK ToolContext for session state access
+        
+    Returns:
+        String representation of session state
+    """
+    if not tool_context:
+        return "No tool context available"
+    
+    session_state = tool_context.session_state
+    info = []
+    
+    if "generated_script" in session_state:
+        info.append(f"Script: {session_state['generated_script'][:100]}...")
+    
+    if "image_prompts" in session_state:
+        prompts = session_state["image_prompts"]
+        if isinstance(prompts, str):
+            info.append(f"Image Prompts: {prompts[:100]}...")
+        else:
+            info.append(f"Image Prompts: {len(prompts)} prompts available")
+    
+    if "generated_images" in session_state:
+        images = session_state["generated_images"]
+        info.append(f"Generated Images: {len(images)} images")
+        for i, img_path in enumerate(images[:3], 1):
+            info.append(f"  {i}. {img_path}")
+        if len(images) > 3:
+            info.append(f"  ... and {len(images) - 3} more")
+    
+    if "last_generated_image" in session_state:
+        info.append(f"Last Image: {session_state['last_generated_image']}")
+    
+    return "\n".join(info) if info else "No session data available"
+
+
 # Create function tools
 generate_image_tool = FunctionTool(
-    name="generate_image",
     description="Generate a single image using Imagen 3.0 based on a text prompt",
     function=generate_image
 )
 
 generate_multiple_images_tool = FunctionTool(
-    name="generate_multiple_images",
     description="Generate multiple images using Imagen 3.0 based on a list of text prompts",
     function=generate_multiple_images
 )
 
+session_info_tool = FunctionTool(
+    description="Get information about the current session state including scripts, prompts, and generated images",
+    function=get_session_info
+)
+
 # Export all tools
-__all__ = ["generate_image_tool", "generate_multiple_images_tool"] 
+__all__ = ["generate_image_tool", "generate_multiple_images_tool", "session_info_tool"] 

@@ -3,7 +3,7 @@ from google.adk.agents import LlmAgent, LoopAgent
 from google.adk.tools import google_search
 
 from .util import load_instruction_from_file
-from .tools import generate_multiple_images_tool
+from .tools import generate_multiple_images_tool, session_info_tool
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -39,16 +39,21 @@ When you receive image prompts from the session state, use the generate_multiple
 1. Extract the image prompts from the session state (look for 'image_prompts' key)
 2. Parse the prompts if they're in JSON format with markdown code blocks
 3. Use the generate_multiple_images tool with the prompts
-4. Report the results back to the user
+4. Use the session_info tool to check the current state after generation
+5. Report the results back to the user
+
+**Available Tools:**
+- generate_multiple_images: Generate images from prompts
+- session_info: Check current session state and generated content
 
 **Important:** Always use the generate_multiple_images tool when you have image prompts to process.
 
 **Example workflow:**
 - If you see image prompts in the session state, call generate_multiple_images with those prompts
-- The tool will return success status and image paths
+- Use session_info to verify what was generated
 - Report the results to the user""",
     description="Generates images from prompts using Imagen 3.0 via function tools",
-    tools=[generate_multiple_images_tool],
+    tools=[generate_multiple_images_tool, session_info_tool],
     output_key="generated_images"
 )
 

@@ -134,7 +134,19 @@ output/
 - **Purpose**: Generate multiple images from a list of prompts
 - **Input**: List of text prompts, aspect ratio, output prefix
 - **Output**: Success status and list of generated image paths
-- **Features**: Error handling, local file saving, configurable parameters
+- **Features**: Error handling, local file saving, configurable parameters, session state integration
+
+### session_info_tool
+- **Purpose**: Get information about the current session state
+- **Input**: ToolContext (automatically provided by ADK)
+- **Output**: String representation of session data
+- **Features**: Shows scripts, prompts, and generated image paths
+
+### ToolContext Integration
+All function tools use ADK's `ToolContext` for:
+- **Session State Access**: Store and retrieve data across agent interactions
+- **State Persistence**: Maintain context throughout the workflow
+- **Debugging**: Monitor the state of the multi-agent system
 
 ## Troubleshooting
 

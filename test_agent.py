@@ -91,7 +91,12 @@ def test_function_tool_directly():
     print("=" * 40)
     
     try:
-        from tools import generate_multiple_images_tool, GenerateMultipleImagesRequest
+        from tools import generate_multiple_images_tool, GenerateMultipleImagesRequest, session_info_tool
+        
+        # Test session info tool first
+        print("📊 Testing session_info tool...")
+        session_result = session_info_tool.function(None)  # No tool_context in direct test
+        print(f"   Session Info: {session_result}")
         
         # Test request
         test_request = GenerateMultipleImagesRequest(
@@ -103,12 +108,13 @@ def test_function_tool_directly():
             output_prefix="test"
         )
         
-        print("📝 Testing with prompts:")
+        print("\n📝 Testing with prompts:")
         for i, prompt in enumerate(test_request.prompts, 1):
             print(f"   {i}. {prompt}")
         
-        # Call the function directly
-        result = generate_multiple_images_tool.function(test_request)
+        # Call the function directly (without tool_context for direct testing)
+        # Note: In real ADK usage, tool_context would be provided automatically
+        result = generate_multiple_images_tool.function(test_request, None)
         
         print(f"\n✅ Function Tool Result:")
         print(f"   Success: {result.success}")
